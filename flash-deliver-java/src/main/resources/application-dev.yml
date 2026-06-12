@@ -1,0 +1,55 @@
+# 开发环境配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DB}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST}:${NACOS_PORT}
+        username: ${NACOS_USERNAME}
+        password: ${NACOS_PASSWORD}
+        enabled: true
+        register-enabled: true
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+
+  # Elasticsearch 配置
+  elasticsearch:
+    uris: ${ES_HOST}:${ES_PORT}
+    connection-timeout: 5000
+    socket-timeout: 30000
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    root: INFO
+    org.springframework.data.redis: DEBUG
+    com.flash.delivery: DEBUG
+#    org.springframework.data.elasticsearch: DEBUG
+#    co.elastic.clients: DEBUG
+#    org.elasticsearch.client: DEBUG
