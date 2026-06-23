@@ -35,6 +35,10 @@ spring:
         import-check:
           enabled: false
 
+  web:
+    resources:
+      static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+
   # Elasticsearch 配置
   elasticsearch:
     uris: ${ES_HOST}:${ES_PORT}
@@ -44,6 +48,17 @@ spring:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# SpringDoc 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  show-actuator: true
+  packages-to-scan: com.huizuike.flashdeliverjava.controller
 
 logging:
   level:
