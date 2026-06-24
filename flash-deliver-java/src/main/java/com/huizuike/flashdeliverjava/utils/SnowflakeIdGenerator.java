@@ -1,5 +1,6 @@
 package com.huizuike.flashdeliverjava.utils;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.NetworkInterface;
@@ -53,10 +54,14 @@ public class SnowflakeIdGenerator {
     private long sequence = 0L;
     private long lastTimestamp = -1L;
 
+    @Value("${snowflake.worker-id:-1}")
+    private long configuredWorkerId;
+
     public SnowflakeIdGenerator() {
-        this.workerId = getWorkerId();
-        if (workerId > MAX_WORKER_ID || workerId < 0) {
-            throw new IllegalArgumentException(String.format("WorkerId不能大于%d或小于0", MAX_WORKER_ID));
+        if (configuredWorkerId >= 0) {
+            this.workerId = configuredWorkerId;
+        } else {
+            this.workerId = getWorkerId();
         }
     }
 

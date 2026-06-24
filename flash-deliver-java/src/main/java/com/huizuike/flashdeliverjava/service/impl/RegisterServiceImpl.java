@@ -8,6 +8,7 @@ import com.huizuike.flashdeliverjava.pojo.dto.RegisterDTO;
 import com.huizuike.flashdeliverjava.pojo.entity.User;
 import com.huizuike.flashdeliverjava.pojo.vo.LoginResponse;
 import com.huizuike.flashdeliverjava.pojo.vo.UserVO;
+import com.huizuike.flashdeliverjava.service.user.LoginService;
 import com.huizuike.flashdeliverjava.service.user.RegisterService;
 import com.huizuike.flashdeliverjava.utils.PasswordEncoder;
 import com.huizuike.flashdeliverjava.utils.SnowflakeIdGenerator;
@@ -25,6 +26,8 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
 
     private final SmsCodeService smsCodeService;
     private final SnowflakeIdGenerator idGenerator;
+    private final UserMapper userMapper;
+    private final LoginService loginService;
 
     /**
      * 用户注册
@@ -43,10 +46,10 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
             return Result.error("验证码错误或已过期");
         }
 //        检查手机是否注册
-        User existingUser = findByPhone(phone);
+        User existingUser = userMapper.findByPhone(phone);
         if (existingUser!=null)
-//            TODO 调用登录服务
-            return null;
+//            调用登录服务
+            return loginService.loginById(existingUser.getId());
 //        创建新用户
         User user = new User();
         user.setId(idGenerator.nextId());
@@ -75,8 +78,7 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
         save(user);
 
         // 5. 调用登录服务，自动登录
-//      TODO  return loginService.loginById(user.getId());
-        return null;
+        return loginService.loginById(user.getId());
     }
 
     /**
@@ -108,15 +110,4 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
         return response;
     }
 
-    /**
-     * 根据用户手机号查询用户
-     * @param phone
-     * @return
-     */
-    private User findByPhone(String phone){
-        return lambdaQuery()
-                .eq(User::getPhone,phone)
-                .eq(User::getIsDeleted,IS_DELETED_NO)
-                .one();
-    }
 }

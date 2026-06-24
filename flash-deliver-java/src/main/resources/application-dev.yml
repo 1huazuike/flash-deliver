@@ -60,6 +60,15 @@ springdoc:
   show-actuator: true
   packages-to-scan: com.huizuike.flashdeliverjava.controller
 
+# JWT 配置
+jwt:
+  secret: flash-delivery-secret-key-2026-spring-boot-3-5-14-jwt
+  access-expiration: 1800     # Access Token 30 分钟
+  refresh-expiration: 604800  # Refresh Token 7 天
+
+snowflake:
+  worker-id: 1  # 分库分表时，每个实例设置不同的值
+
 logging:
   level:
     root: INFO

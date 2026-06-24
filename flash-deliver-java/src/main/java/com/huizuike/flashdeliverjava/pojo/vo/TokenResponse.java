@@ -8,11 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "登录响应")
-public class LoginResponse {
-
-    @Schema(description = "用户信息")
-    private UserVO user;
+@Schema(description = "Token 响应")
+public class TokenResponse {
 
     @Schema(description = "访问令牌")
     private String accessToken;
@@ -20,12 +17,9 @@ public class LoginResponse {
     @Schema(description = "刷新令牌")
     private String refreshToken;
 
-    @Schema(description = "Access Token 过期时间（秒）", example = "1800")
+    @Schema(description = "Access Token 过期时间（秒）")
     private Long expiresIn;
 
-    @Schema(description = "Refresh Token 过期时间（秒）", example = "604800")
+    @Schema(description = "Refresh Token 过期时间（秒）")
     private Long refreshExpiresIn;
-
-    @Schema(description = "是否新注册用户")
-    private Boolean isNewUser;
 }
