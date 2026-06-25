@@ -1,30 +1,33 @@
 package com.huizuike.flashdeliverjava.controller.user;
 
 
+import com.huizuike.flashdeliverjava.common.constant.RedisKeyConstants;
+import com.huizuike.flashdeliverjava.common.context.UserContext;
 import com.huizuike.flashdeliverjava.pojo.common.Result;
 import com.huizuike.flashdeliverjava.pojo.dto.LoginDTO;
 import com.huizuike.flashdeliverjava.pojo.dto.RegisterDTO;
 import com.huizuike.flashdeliverjava.pojo.dto.SmsCodeDTO;
 import com.huizuike.flashdeliverjava.pojo.vo.LoginResponse;
 import com.huizuike.flashdeliverjava.service.impl.SmsCodeService;
+import com.huizuike.flashdeliverjava.service.user.LoginService;
 import com.huizuike.flashdeliverjava.service.user.RegisterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 @RequiredArgsConstructor
 @Tag(name = "用户管理", description = "用户注册、登录、信息管理接口")
+@Slf4j
 public class UserController {
 
     private final RegisterService registerService;
     private final SmsCodeService smsCodeService;
+    private final LoginService loginService;
 
     /**
      * 发送验证码
@@ -52,9 +55,24 @@ public class UserController {
      * 用户登录（暂未实现 JWT，返回占位）
      */
     @PostMapping("/login")
-    @Operation(summary = "用户登录")
-    public Result<LoginResponse> Login(@Valid @RequestBody LoginDTO loginDTO){
-        // TODO: 实现登录逻辑（密码登录 + 验证码登录）
-        return Result.success(null);
+    @Operation(summary = "用户登录", description = "支持密码登录和验证码登录")
+    public Result<LoginResponse> login(@Valid @RequestBody LoginDTO loginDTO) {
+        // 密码登录
+        if (loginDTO.getPassword() != null && !loginDTO.getPassword().isEmpty()) {
+            return loginService.loginByPassword(loginDTO);
+        }
+
+        // 验证码登录
+        if (loginDTO.getSmsCode() != null && !loginDTO.getSmsCode().isEmpty()) {
+            return loginService.loginBySmsCode(loginDTO);
+        }
+
+        return Result.error("请使用密码或验证码登录");
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "退出登录")
+    public Result<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        return loginService.logout(authorization);
     }
 }

@@ -3,7 +3,6 @@ package com.huizuike.flashdeliverjava.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.huizuike.flashdeliverjava.common.constant.RedisKeyConstants;
-import com.huizuike.flashdeliverjava.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -19,16 +18,38 @@ public class SmsCodeService {
     private final StringRedisTemplate stringRedisTemplate;
 
     /**
-     * 发送验证码
+     * 发送验证码（带频率限制）
      */
     public void sendSmsCode(String phone) {
-        String code = RandomUtil.randomNumbers(6);
-        String key = RedisKeyConstants.getSmsCodeKey(phone);
+        String limitKey = RedisKeyConstants.getSmsCodeLimitKey(phone);
+        String codeKey = RedisKeyConstants.getSmsCodeKey(phone);
 
+        // 1. 检查频率限制
+        String lastSendTime = stringRedisTemplate.opsForValue().get(limitKey);
+        if (StrUtil.isNotBlank(lastSendTime)) {
+            long lastTime = Long.parseLong(lastSendTime);
+            long remainingSeconds = (lastTime + RedisKeyConstants.SMS_CODE_LIMIT_SECONDS * 1000 - System.currentTimeMillis()) / 1000;
+            if (remainingSeconds > 0) {
+                throw new RuntimeException("请求过于频繁，请等待 " + remainingSeconds + " 秒后重试");
+            }
+        }
+
+        // 2. 生成验证码
+        String code = RandomUtil.randomNumbers(6);
+
+        // 3. 存储验证码
         stringRedisTemplate.opsForValue().set(
-                key,
+                codeKey,
                 code,
                 RedisKeyConstants.SMS_CODE_EXPIRE_SECONDS,
+                TimeUnit.SECONDS
+        );
+
+        // 4. 记录发送时间
+        stringRedisTemplate.opsForValue().set(
+                limitKey,
+                String.valueOf(System.currentTimeMillis()),
+                RedisKeyConstants.SMS_CODE_LIMIT_SECONDS,
                 TimeUnit.SECONDS
         );
 
@@ -37,62 +58,18 @@ public class SmsCodeService {
     }
 
     /**
-     * 校验验证码（返回校验结果）
+     * 校验验证码并删除（返回布尔值）
      */
-    public boolean verifySmsCode(String phone, String inputCode) {
+    public boolean verifyAndDeleteSmsCode(String phone, String inputCode) {
         if (StrUtil.isBlank(inputCode)) {
             return false;
         }
-
         String key = RedisKeyConstants.getSmsCodeKey(phone);
         String redisCode = stringRedisTemplate.opsForValue().get(key);
-
-        if (StrUtil.isBlank(redisCode)) {
-            return false;
-        }
-
-        return redisCode.equals(inputCode);
-    }
-
-    /**
-     * 校验验证码（抛出异常版本，用于业务逻辑中直接校验）
-     */
-    public void verifySmsCodeWithException(String phone, String inputCode, String errorMessage) {
-        if (!verifySmsCode(phone, inputCode)) {
-            throw new BusinessException(400, errorMessage);
-        }
-    }
-
-    /**
-     * 校验验证码并删除（验证通过后自动删除，确保一次性使用）
-     */
-    public boolean verifyAndDeleteSmsCode(String phone, String inputCode) {
-        String key = RedisKeyConstants.getSmsCodeKey(phone);
-        String redisCode = stringRedisTemplate.opsForValue().get(key);
-
         if (StrUtil.isBlank(redisCode) || !redisCode.equals(inputCode)) {
             return false;
         }
-
-        // 验证通过，删除验证码
         stringRedisTemplate.delete(key);
         return true;
-    }
-
-    /**
-     * 校验验证码并删除（抛出异常版本）
-     */
-    public void verifyAndDeleteSmsCodeWithException(String phone, String inputCode, String errorMessage) {
-        if (!verifyAndDeleteSmsCode(phone, inputCode)) {
-            throw new BusinessException(400, errorMessage);
-        }
-    }
-
-    /**
-     * 删除验证码
-     */
-    public void deleteSmsCode(String phone) {
-        String key = RedisKeyConstants.getSmsCodeKey(phone);
-        stringRedisTemplate.delete(key);
     }
 }

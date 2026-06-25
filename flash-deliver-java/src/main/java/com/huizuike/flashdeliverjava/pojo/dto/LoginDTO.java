@@ -7,12 +7,12 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 @Data
-@Schema(description = "注册请求")
+@Schema(description = "登录请求")
 public class LoginDTO {
 
     @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    @Schema(description = "手机号", example = "18812345678")
+    @Schema(description = "手机号", example = "18800000001")
     private String phone;
 
     @Length(min = 6, max = 20, message = "密码长度6-20位")

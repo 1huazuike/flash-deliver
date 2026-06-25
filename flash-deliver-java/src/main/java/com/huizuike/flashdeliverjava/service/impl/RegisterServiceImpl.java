@@ -8,6 +8,7 @@ import com.huizuike.flashdeliverjava.pojo.dto.RegisterDTO;
 import com.huizuike.flashdeliverjava.pojo.entity.User;
 import com.huizuike.flashdeliverjava.pojo.vo.LoginResponse;
 import com.huizuike.flashdeliverjava.pojo.vo.UserVO;
+import com.huizuike.flashdeliverjava.service.user.LoginService;
 import com.huizuike.flashdeliverjava.service.user.RegisterService;
 import com.huizuike.flashdeliverjava.utils.PasswordEncoder;
 import com.huizuike.flashdeliverjava.utils.SnowflakeIdGenerator;
@@ -25,6 +26,7 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
 
     private final SmsCodeService smsCodeService;
     private final SnowflakeIdGenerator idGenerator;
+    private final LoginService loginService;
 
     /**
      * 用户注册
@@ -45,8 +47,7 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
 //        检查手机是否注册
         User existingUser = findByPhone(phone);
         if (existingUser!=null)
-//            TODO 调用登录服务
-            return null;
+            return loginService.loginById(existingUser.getId());
 //        创建新用户
         User user = new User();
         user.setId(idGenerator.nextId());
@@ -75,37 +76,7 @@ public class RegisterServiceImpl extends ServiceImpl<UserMapper, User> implement
         save(user);
 
         // 5. 调用登录服务，自动登录
-//      TODO  return loginService.loginById(user.getId());
-        return null;
-    }
-
-    /**
-     * 封装userVO
-     * @param user
-     * @return
-     */
-    private UserVO convertToUserVO(User user) {
-        if (user == null) return null;
-        UserVO vo = new UserVO();
-        BeanUtils.copyProperties(user, vo);
-        return vo;
-    }
-
-    /**
-     * 封装LoginResponse
-     * @param user
-     * @param token
-     * @param isNewUser
-     * @return
-     */
-    private LoginResponse buildLoginResponse(User user, String token, boolean isNewUser) {
-        LoginResponse response = new LoginResponse();
-        //        TODO jwt验证
-        response.setUser(convertToUserVO(user));
-        response.setToken(token);
-//        response.setExpiresIn(jwtUtil.getExpirationMillis());
-        response.setIsNewUser(isNewUser);
-        return response;
+        return loginService.loginById(user.getId());
     }
 
     /**

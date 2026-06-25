@@ -5,18 +5,25 @@ package com.huizuike.flashdeliverjava.common.constant;
  */
 public class RedisKeyConstants {
 
-    private static final String SEPARATOR = ":";
-
-    // 验证码
+    // ============ 验证码相关 ============
     public static final String SMS_CODE_PREFIX = "sms:code";
-
-    // 验证码过期时间（5分钟）
+    public static final String SMS_CODE_LIMIT_PREFIX = "sms:limit";
     public static final int SMS_CODE_EXPIRE_SECONDS = 300;
+    public static final int SMS_CODE_LIMIT_SECONDS = 60;
 
-    /**
-     * 获取验证码的 Redis Key
-     */
+    // ============ 用户登录 Token 相关 ============
+    public static final String USER_TOKEN_PREFIX = "user:token";
+    public static final int TOKEN_EXPIRE_SECONDS = 1800;  // 30分钟
+
     public static String getSmsCodeKey(String phone) {
-        return SMS_CODE_PREFIX + SEPARATOR + phone;
+        return SMS_CODE_PREFIX + ":" + phone;
+    }
+
+    public static String getSmsCodeLimitKey(String phone) {
+        return SMS_CODE_LIMIT_PREFIX + ":" + phone;
+    }
+
+    public static String getUserTokenKey(String token) {
+        return USER_TOKEN_PREFIX + ":" + token;
     }
 }
