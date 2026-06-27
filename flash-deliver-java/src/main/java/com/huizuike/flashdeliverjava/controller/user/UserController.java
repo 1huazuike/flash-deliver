@@ -4,13 +4,13 @@ package com.huizuike.flashdeliverjava.controller.user;
 import com.huizuike.flashdeliverjava.common.constant.RedisKeyConstants;
 import com.huizuike.flashdeliverjava.common.context.UserContext;
 import com.huizuike.flashdeliverjava.pojo.common.Result;
-import com.huizuike.flashdeliverjava.pojo.dto.LoginDTO;
-import com.huizuike.flashdeliverjava.pojo.dto.RegisterDTO;
-import com.huizuike.flashdeliverjava.pojo.dto.SmsCodeDTO;
+import com.huizuike.flashdeliverjava.pojo.dto.*;
 import com.huizuike.flashdeliverjava.pojo.vo.LoginResponse;
+import com.huizuike.flashdeliverjava.pojo.vo.UserVO;
 import com.huizuike.flashdeliverjava.service.impl.SmsCodeService;
 import com.huizuike.flashdeliverjava.service.user.LoginService;
 import com.huizuike.flashdeliverjava.service.user.RegisterService;
+import com.huizuike.flashdeliverjava.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,6 +28,9 @@ public class UserController {
     private final RegisterService registerService;
     private final SmsCodeService smsCodeService;
     private final LoginService loginService;
+    private final UserService userService;
+
+    // ==================== 注册/登录/退出 ====================
 
     /**
      * 发送验证码
@@ -73,6 +76,46 @@ public class UserController {
     @PostMapping("/logout")
     @Operation(summary = "退出登录")
     public Result<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
-        return loginService.logout(authorization);
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            log.warn("退出登录失败：Authorization 格式不正确");
+            return Result.error("退出登录失败");
+        }
+
+        String token = authorization.substring(7);
+
+        return loginService.logout(token);
+    }
+
+
+    // ==================== 用户信息管理 ====================
+
+    @GetMapping("/info")
+    @Operation(summary = "获取当前用户信息")
+    public Result<UserVO> getCurrentUserInfo() {
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            return Result.error(401, "未登录");
+        }
+        return userService.getUserInfo(userId);
+    }
+
+    @PutMapping("/info")
+    @Operation(summary = "修改用户信息", description = "修改昵称、头像、性别")
+    public Result<Void> updateUserInfo(@Valid @RequestBody UpdateUserInfoDTO dto) {
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            return Result.error(401, "未登录");
+        }
+        return userService.updateUserInfo(userId, dto);
+    }
+
+    @PutMapping("/password")
+    @Operation(summary = "修改密码", description = "需要验证旧密码")
+    public Result<Void> updatePassword(@Valid @RequestBody UpdatePasswordDTO dto) {
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            return Result.error(401, "未登录");
+        }
+        return userService.updatePassword(userId, dto);
     }
 }

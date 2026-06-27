@@ -9,7 +9,6 @@ import com.huizuike.flashdeliverjava.pojo.vo.LoginResponse;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
-@Service
 public interface RegisterService extends IService<User> {
     Result<LoginResponse> register(@Valid RegisterDTO registerDTO);
 }

@@ -16,20 +16,20 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoginInterceptor(stringRedisTemplate))
-                .addPathPatterns("/api/**")
+                .addPathPatterns("/**")
                 .excludePathPatterns(
                         // 白名单：不需要登录的接口
-                        "/api/user/login",
-                        "/api/user/register",
-                        "/api/user/sms-code",
+                        "/user/login",
+                        "/user/register",
+                        "/user/sms-code",
                         // Swagger 文档
-                        "/api/doc.html",
-                        "/api/swagger-ui/**",
-                        "/api/v3/api-docs/**",
-                        "/api/webjars/**",
+                        "/doc.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/webjars/**",
                         // 健康检查
-                        "/api/actuator/**",
-                        "/api/error"
+                        "/actuator/**",
+                        "/error"
                 );
     }
 }
